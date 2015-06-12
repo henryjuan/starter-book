@@ -29,6 +29,32 @@ class CustomerController extends Controller
         $this->middleware('subscribed', ['except' => ['fooAction', 'barAction']]);
     }
 
+    public function getNew()
+    {
+    	return view('customer.new');
+    }
+
+    public function postNew(Request $request)
+    {
+    	//TODO 新客戶審核
+    }
+
+    public function postApproval()
+    {
+    	$credentials = Input::only([
+            'email',
+            'password',
+            'password_confirmation',
+            'token'
+        ]);
+
+        $response = Password::reset($credentials, function ($user, $password) {
+            $user->password = Hash::make($password);
+
+            $user->save();
+        });
+    }
+
     public function showProfile($id)
     {
     	$customer = $this->customers->getCustomerById($id)
@@ -45,6 +71,6 @@ class CustomerController extends Controller
     public function update(Request $request, $id)
     {
         //
-    }
+    
 }
 ```

@@ -9,12 +9,17 @@ class Order extends Model
 {
     public function customer()
     {
-        return $this->belongsTo('App\Customer');
+        return $this->belongsTo('App\CRM\Customer');
     }
+
+	publuc function salesman()
+	{
+		return $this->belogsTo('App\CRM\Salesman');
+	}
 
     public function items()
     {
-        return $this->hasMany('App\Item');
+        return $this->hasMany('App\CRM\Item');
     }
 }
 ```
