@@ -1,8 +1,22 @@
-# 安裝 Laravel
+# 準備開發環境
+
+## 安裝 Laravel
+```php
+composer global require "laravel/installer=~1.1"
+```
+
+## 建立專案
 ```php
 laravel new crm
 ```
-# .env
+
+## 建立 Models 目錄
+```
+mkdir app/CRM
+```
+
+## 環境設定
+修改 .env
 ```
 APP_ENV=local
 APP_DEBUG=true
