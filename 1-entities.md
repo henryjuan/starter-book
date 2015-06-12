@@ -22,6 +22,11 @@ php artisan make:model Product
 ```php
 php artisan make:model Order
 ```
+## 訂單明細
+
+```php
+php artisan make:model Item
+```
 
 ## 活動
 
