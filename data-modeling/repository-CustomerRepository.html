@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>CustomerRepository | 使用 Laravel 5.1 開發 CRM 系統</title>
+
+    <!-- Styles and fonts -->
+    <link href="../themes/glide/stylesheets/glide.css" rel="stylesheet" type="text/css" />
+    <link href="../themes/glide/stylesheets/syntax.css" rel="stylesheet" type="text/css" />
+    <link href='//fonts.googleapis.com/css?family=Bree+Serif&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+
+    <script src="../themes/glide/javascripts/modernizr.js" type="text/javascript"></script>
+  </head>
+
+  <body class="data-modeling data-modeling_repository-CustomerRepository glide">
+    <div class="page-wrapper">
+
+      <!--[if lt IE 7]>
+          <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+      <![endif]-->
+
+      <header class="page-header" role="banner">
+<a class="invisilink" href="../">            <span class="book-title">使用 Laravel 5.1 開發 CRM 系統</span>
+</a>        <span class="book-author visuallyhidden">by 阮紹謙</span>
+      </header>
+
+        <div class="content-wrapper clearfix">
+
+          <section class="main-content" role="main">
+            <div class="main-content-source">
+              <h1>CustomerRepository</h1>
+<pre class="highlight php"><span class="cp">&lt;?php</span> <span class="k">namespace</span> <span class="nx">App\CRM\Repositories</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">App\CRM\Customer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\CRM\Repositories\CustomerRepositoryInterface</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Illuminate\Support\Facades\File</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Illuminate\Support\Facades\Hash</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Illuminate\Support\Facades\Config</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Illuminate\Support\Facades\Session</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">App\CRM\Services\Forms\SettingsForm</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\CRM\Services\Forms\RegistrationForm</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">App\CRM\Exceptions\UserNotFoundException</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">League\OAuth2\Client\Provider\User</span> <span class="k">as</span> <span class="nx">OAuthUser</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">CustomerRepository</span> <span class="k">extends</span> <span class="nx">AbstractRepository</span> <span class="k">implements</span> <span class="nx">CustomerRepositoryInterface</span>
+<span class="p">{</span>
+    <span class="k">protected</span> <span class="nv">$model</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="nx">Customer</span> <span class="nv">$customer</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">model</span> <span class="o">=</span> <span class="nv">$customer</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="sd">/**
+     * Find all users paginated.
+     *
+     * @param  int  $perPage
+     * @return Illuminate\Database\Eloquent\Collection|\Tricks\User[]
+     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">findAllPaginated</span><span class="p">(</span><span class="nv">$perPage</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">model</span>
+                    <span class="o">-&gt;</span><span class="na">orderBy</span><span class="p">(</span><span class="s1">'created_at'</span><span class="p">,</span> <span class="s1">'desc'</span><span class="p">)</span>
+                    <span class="o">-&gt;</span><span class="na">paginate</span><span class="p">(</span><span class="nv">$perPage</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="sd">/**
+     * Find a user by it's username.
+     *
+     * @param  string $username
+     * @return \Tricks\User
+     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">findByUsername</span><span class="p">(</span><span class="nv">$username</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">model</span><span class="o">-&gt;</span><span class="na">whereUsername</span><span class="p">(</span><span class="nv">$username</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">first</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="sd">/**
+     * Find a user by it's email.
+     *
+     * @param  string $email
+     * @return \Tricks\User
+     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">findByEmail</span><span class="p">(</span><span class="nv">$email</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">model</span><span class="o">-&gt;</span><span class="na">whereEmail</span><span class="p">(</span><span class="nv">$email</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">first</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="sd">/**
+     * Require a user by it's username.
+     *
+     * @param  string $username
+     * @return \Tricks\User
+     * @throws \Tricks\Exceptions\UserNotFoundException
+     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">requireByUsername</span><span class="p">(</span><span class="nv">$username</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span> <span class="nb">is_null</span><span class="p">(</span><span class="nv">$user</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">findByUsername</span><span class="p">(</span><span class="nv">$username</span><span class="p">)))</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nv">$user</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nx">UserNotFoundException</span><span class="p">(</span><span class="s1">'The user "'</span> <span class="o">.</span> <span class="nv">$username</span> <span class="o">.</span> <span class="s1">'" does not exist!'</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="sd">/**
+     * Create a new user in the database.
+     *
+     * @param  array  $data
+     * @return \Tricks\User
+     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">create</span><span class="p">(</span><span class="k">array</span> <span class="nv">$data</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="nv">$user</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">getNew</span><span class="p">();</span>
+        <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">email</span>    <span class="o">=</span> <span class="nx">e</span><span class="p">(</span><span class="nv">$data</span><span class="p">[</span><span class="s1">'email'</span><span class="p">]);</span>
+        <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">username</span> <span class="o">=</span> <span class="nx">e</span><span class="p">(</span><span class="nv">$data</span><span class="p">[</span><span class="s1">'username'</span><span class="p">]);</span>
+        <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">password</span> <span class="o">=</span> <span class="nx">Hash</span><span class="o">::</span><span class="na">make</span><span class="p">(</span><span class="nv">$data</span><span class="p">[</span><span class="s1">'password'</span><span class="p">]);</span>
+        <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">photo</span>    <span class="o">=</span> <span class="nb">isset</span><span class="p">(</span><span class="nv">$data</span><span class="p">[</span><span class="s1">'image_url'</span><span class="p">])</span> <span class="o">?</span> <span class="nv">$data</span><span class="p">[</span><span class="s1">'image_url'</span><span class="p">]</span> <span class="o">:</span> <span class="kc">null</span><span class="p">;</span>
+        <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">();</span>
+        <span class="k">return</span> <span class="nv">$user</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="sd">/**
+     * Create a new user in the database using GitHub data.
+     *
+     * @param  \League\OAuth2\Client\Provider\User  $data
+     * @return \Tricks\User
+     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">createFromGithubData</span><span class="p">(</span><span class="nx">OAuthUser</span> <span class="nv">$data</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="nv">$user</span>        <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">getNew</span><span class="p">();</span>
+        <span class="nv">$username</span>    <span class="o">=</span> <span class="nv">$data</span><span class="o">-&gt;</span><span class="na">nickname</span><span class="p">;</span>
+        <span class="nv">$isAvailable</span> <span class="o">=</span> <span class="nb">is_null</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">findByUsername</span><span class="p">(</span><span class="nv">$username</span><span class="p">));</span>
+        <span class="nv">$isAllowed</span>   <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">usernameIsAllowed</span><span class="p">(</span><span class="nv">$username</span><span class="p">);</span>
+        <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">username</span> <span class="o">=</span> <span class="nv">$username</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span> <span class="nv">$isAvailable</span> <span class="k">or</span> <span class="o">!</span> <span class="nv">$isAllowed</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">username</span> <span class="o">.=</span> <span class="s1">'_'</span> <span class="o">.</span> <span class="nx">str_random</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+            <span class="nx">Session</span><span class="o">::</span><span class="na">flash</span><span class="p">(</span><span class="s1">'username_required'</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">email</span> <span class="o">=</span> <span class="nv">$data</span><span class="o">-&gt;</span><span class="na">email</span><span class="p">;</span>
+        <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">photo</span> <span class="o">=</span> <span class="nv">$data</span><span class="o">-&gt;</span><span class="na">image_url</span> <span class="o">?:</span> <span class="s1">''</span><span class="p">;</span>
+        <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">();</span>
+        <span class="nx">Session</span><span class="o">::</span><span class="na">flash</span><span class="p">(</span><span class="s1">'password_required'</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nv">$user</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="sd">/**
+     * Returns whether the given username is allowed to be used.
+     *
+     * @param  string  $username
+     * @return bool
+     */</span>
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">usernameIsAllowed</span><span class="p">(</span><span class="nv">$username</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="o">!</span> <span class="nb">in_array</span><span class="p">(</span><span class="nb">strtolower</span><span class="p">(</span><span class="nv">$username</span><span class="p">),</span> <span class="nx">Config</span><span class="o">::</span><span class="na">get</span><span class="p">(</span><span class="s1">'config.forbidden_usernames'</span><span class="p">));</span>
+    <span class="p">}</span>
+    <span class="sd">/**
+     * Update the user's settings.
+     *
+     * @param  \Tricks\User  $user
+     * @param  array $data
+     * @return \Tricks\User
+     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">updateSettings</span><span class="p">(</span><span class="nx">User</span> <span class="nv">$user</span><span class="p">,</span> <span class="k">array</span> <span class="nv">$data</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">username</span> <span class="o">=</span> <span class="nv">$data</span><span class="p">[</span><span class="s1">'username'</span><span class="p">];</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nv">$data</span><span class="p">[</span><span class="s1">'password'</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">''</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">password</span> <span class="o">=</span> <span class="nx">Hash</span><span class="o">::</span><span class="na">make</span><span class="p">(</span><span class="nv">$data</span><span class="p">[</span><span class="s1">'password'</span><span class="p">]);</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nv">$data</span><span class="p">[</span><span class="s1">'avatar'</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">''</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">File</span><span class="o">::</span><span class="na">move</span><span class="p">(</span><span class="nx">public_path</span><span class="p">()</span><span class="o">.</span><span class="s1">'/img/avatar/temp/'</span><span class="o">.</span><span class="nv">$data</span><span class="p">[</span><span class="s1">'avatar'</span><span class="p">],</span> <span class="s1">'img/avatar/'</span><span class="o">.</span><span class="nv">$data</span><span class="p">[</span><span class="s1">'avatar'</span><span class="p">]);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nv">$user</span><span class="o">-&gt;</span><span class="na">photo</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">File</span><span class="o">::</span><span class="na">delete</span><span class="p">(</span><span class="nx">public_path</span><span class="p">()</span><span class="o">.</span><span class="s1">'/img/avatar/'</span><span class="o">.</span><span class="nv">$user</span><span class="o">-&gt;</span><span class="na">photo</span><span class="p">);</span>
+            <span class="p">}</span>
+            <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">photo</span> <span class="o">=</span> <span class="nv">$data</span><span class="p">[</span><span class="s1">'avatar'</span><span class="p">];</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="sd">/**
+     * Get the user registration form service.
+     *
+     * @return \Tricks\Services\Forms\RegistrationForm
+     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">getRegistrationForm</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">app</span><span class="p">(</span><span class="s1">'Tricks\Services\Forms\RegistrationForm'</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="sd">/**
+     * Get the user settings form service.
+     *
+     * @return \Tricks\Services\Forms\SettingsForm
+     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">getSettingsForm</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">app</span><span class="p">(</span><span class="s1">'Tricks\Services\Forms\SettingsForm'</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre>
+
+            </div>
+            <nav class="main-content-nav clearfix" role="navigation">
+              <ul>
+                <li><a class="previous" href="model-product.html">Previous</a></li>
+                <li><a class="next" href="../features.html">Next</a></li>
+              </ul>
+            </nav>
+          </section>
+
+          <aside class="aside-content" role="complementary">
+            <div class="aside-wrapper">
+
+              <div class="block table-of-contents">
+                <h3>Table of Contents</h3>
+                <nav role="navigation">
+                  <ul>
+                    <li class='child '><a href="../preparation/">準備開發環境</a></li><li class='child '><a href="../controller-CustomerController.html">Controller - CustomerController</a></li><li class='parent'><span class='parent-label'>Data Modeling</span><ul><li class='child '><a href="migration-assessments.html">數據結構 - 客戶信用評估</a></li><li class='child '><a href="migration-customers.html">數據結構 - 客戶</a></li><li class='child '><a href="migration-factories.html">數據結構 - 工廠</a></li><li class='child '><a href="migration-items.html">數據結構 - 訂單明細</a></li><li class='child '><a href="migration-orders.html">數據結構 - 訂單</a></li><li class='child '><a href="migration-products.html">數據結構 - 款式</a></li><li class='child '><a href="migration-salesmen.html">數據結構 - 業務員</a></li><li class='child '><a href="migration-samples.html">數據結構 - 樣品</a></li><li class='child '><a href="model-assessment.html">Model - 信用評估</a></li><li class='child '><a href="model-customer.html">Model - 客戶</a></li><li class='child '><a href="model-item.html">Model - 訂單項</a></li><li class='child '><a href="model-order.html">Model - 訂單</a></li><li class='child '><a href="model-product.html">Model - 產品</a></li><li class='child active'><a href="repository-CustomerRepository.html">CustomerRepository</a></li></ul></li><li class='child '><a href="../features.html">功能</a></li><li class='parent'><span class='parent-label'>Preparation</span><ul></ul></li><li class='parent'><span class='parent-label'>Use Cases</span><ul></ul></li>
+                  </ul>
+                </nav>
+              </div>
+              <!--
+              <div class="block translations">
+                <h3>Book translations</h3>
+                <p>This book is translated into 
+                  <a href="#">Spanish</a>
+                  and <a href="#">English</a>.
+                  You can help with more translations <a href="https://github.com/henryjuan/starter-book">on Github</a>.
+                </p>
+              </div>
+              -->
+            </div><!-- end aside-wrapper -->
+          </aside>
+
+        </div><!-- end content-wrapper -->
+
+      <footer class="page-footer">
+
+        <div class="footer-wrapper">
+          <!--
+          <div class="block downloads">&nbsp;
+            <h3>Downloads</h3>
+            <p>Download this book in
+                <a href="#">PDF</a>, <a href="#">mobi</a>, and <a href="#">epub</a>
+              form for free.
+            </p>
+          </div>
+          -->
+          <div class="block license">
+            <h3>License</h3>
+            <p>This book is licensed under the <a href="https://creativecommons.org/licenses/by-nc-nd/4.0">Attribution-NonCommercial-NoDerivs</a> license.</p>
+          </div>
+
+          <div class="block open-source">
+            <h3>This book is open source</h3>
+            <p>The source of this book is <a href="https://github.com/henryjuan/starter-book">hosted on Github</a>. Go, ahead. Check it out.</p>
+          </div>
+
+          <small class="small-text">Made with <a href="http://bitbooks.cc">Bitbooks</a></small>
+
+        </div><!-- end footer-wrapper -->
+
+      </footer>
+
+
+    </div><!-- end page-wrapper -->
+
+    <!-- include scripts just before the close of the body tag -->
+    <script src="../themes/glide/javascripts/anchor.min.js" type="text/javascript"></script>
+    <script src="../themes/glide/javascripts/glide.js" type="text/javascript"></script>
+  </body>
+</html>
