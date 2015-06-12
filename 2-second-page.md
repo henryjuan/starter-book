@@ -1,26 +1,48 @@
-# Second Page
+# 數據結構 - 客戶
 
-Here are a couple more examples of markdown elements. Here we have a blockquote:
-
-> Don't think about making art, just get it done. Let everyone else decide if it's good or bad, whether they love it or hate it. While they are deciding, make even more art.
-> Andy Warhol
-
-And a numbered list:
-
-1. Numbered Item 1
-2. Numbered Item 2
-3. Numbered Item 3
-
-And a code block (with syntax highlighting).
-
-```ruby
-require 'redcarpet'
-markdown = Redcarpet.new("Hello World!")
-puts markdown.to_html
-```
-
-And a horizontal rule.
+** 客戶編號
+** 客戶名稱
+** 公司地址
+** 公司電話
+** 聯絡人姓名
+** Email
 
 * * *
 
-This is far from comprehensive. To learn more about Markdown, see [Mastering Markdown](https://guides.github.com/features/mastering-markdown/).
+
+```php
+php artisan make:migration create_customers_table --create=customers
+```
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+
+class CreateCustomersTable extends Migration {
+
+        public function up()
+        {
+                Schema::create('customers', function($table)
+                {
+                        $table->increments('id');
+                        $table->string('name');
+                        $table->string('address');
+                        $table->string('telephone');
+                        $table->string('contact');
+                        $table->string('email');
+                        $table->text('memo');
+                });
+        }
+
+        public function down()
+        {
+                Schema::drop('customers');
+        }
+
+}
+```
+
+```php
+php artisan migrate
+```
