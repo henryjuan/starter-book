@@ -1,9 +1,11 @@
 # 建立 Entities
 
 * Customer
-* Product
+* Style
 * Order
-* Campaign
+* Sample
+* Accessment
+* Factory
 
 ## 客戶
 
@@ -14,7 +16,7 @@ php artisan make:model Customer
 ## 產品
 
 ```php
-php artisan make:model Product
+php artisan make:model Style
 ```
 
 ## 訂單
@@ -28,8 +30,14 @@ php artisan make:model Order
 php artisan make:model Item
 ```
 
-## 活動
+## 樣品
 
 ```php
-php artisan make:model Campaign
+php artisan make:model Sample
+```
+
+## 工廠
+
+```php
+php artisan make:model Factory
 ```

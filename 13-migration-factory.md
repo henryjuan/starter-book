@@ -1,16 +1,18 @@
-# 數據結構 - 款式
+# 數據結構 - 工廠
 
-* 款式編號
-* 款式名稱
-* 報價
-* 照片
-* 說明
+* 工廠編號
+* 工廠名稱
+* 地址
+* 電話
+* Email
+* 負責人
+* 類別
 
 * * *
 
 
 ```php
-php artisan make:migration create_products_table --create=products
+php artisan make:migration create_factories_table --create=factories
 ```
 
 ```php
@@ -19,7 +21,7 @@ php artisan make:migration create_products_table --create=products
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateProductsTable extends Migration {
+class CreateFactoriesTable extends Migration {
 
         public function up()
         {
@@ -27,8 +29,10 @@ class CreateProductsTable extends Migration {
                 {
                         $table->increments('id');
                         $table->string('name');
-                        $table->string('price');
-                        $table->binary('photo');
+                        $table->string('address');
+                        $table->string('telephone');
+                        $table->string('fax');
+                        $table->string('email');
                         $table->text('description');
                         $table->timestamps();
                 });
@@ -36,7 +40,7 @@ class CreateProductsTable extends Migration {
 
         public function down()
         {
-                Schema::drop('products');
+                Schema::drop('factories');
         }
 
 }
