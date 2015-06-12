@@ -1,7 +1,7 @@
 # Model - 產品
 
 ```php
-<?php namespace App;
+<?php namespace App\CRM;
 
 use Illuminate\Database\Eloquent\Model;
 

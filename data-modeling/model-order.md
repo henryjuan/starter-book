@@ -1,7 +1,7 @@
 # Model - 訂單
 
 ```php
-<?php namespace App;
+<?php namespace App\CRM;
 
 use Illuminate\Database\Eloquent\Model;
 

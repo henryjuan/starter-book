@@ -16,7 +16,9 @@ mkdir app/CRM
 ```
 
 ## 環境設定
+
 修改 .env
+
 ```
 APP_ENV=local
 APP_DEBUG=true

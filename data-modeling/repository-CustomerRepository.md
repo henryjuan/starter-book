@@ -1,20 +1,20 @@
 # CustomerRepository
 
 ```php
-<?php namespace CRM\Repositories;
+<?php namespace App\CRM\Repositories;
 
-use CRM\Entities\Customer;
-use CRM\Repositories\CustomerRepositoryInterface;
+use App\CRM\Customer;
+use App\CRM\Repositories\CustomerRepositoryInterface;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Session;
 
-use CRM\Services\Forms\SettingsForm;
-use CRM\Services\Forms\RegistrationForm;
+use App\CRM\Services\Forms\SettingsForm;
+use App\CRM\Services\Forms\RegistrationForm;
 
-use CRM\Exceptions\UserNotFoundException;
+use App\CRM\Exceptions\UserNotFoundException;
 
 use League\OAuth2\Client\Provider\User as OAuthUser;
 
@@ -22,9 +22,9 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 {
 	protected $model;
 	
-    public function __construct(Customer $user)
+    public function __construct(Customer $customer)
     {
-        $this->model = $user;
+        $this->model = $customer;
     }
     /**
      * Find all users paginated.
